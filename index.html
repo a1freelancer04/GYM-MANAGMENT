@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>IRON GYM · PREMIUM ADMIN</title>
+  <!-- Fonts, icons, charts, QR -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    /* === RESET & GLOBAL === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 30%, #1a1f2e, #0b0d15);
+      background-attachment: fixed;
+      transition: background 0.3s, color 0.3s;
+      position: relative;
+    }
+
+    /* light theme class */
+    body.light-theme {
+      background: #e4e9f2;
+      background: radial-gradient(circle at 10% 30%, #f0f3fd, #d9e0ec);
+    }
+
+    body.light-theme .glass-panel,
+    body.light-theme .sidebar,
+    body.light-theme .top-bar,
+    body.light-theme .modal-content,
+    body.light-theme .card-stats,
+    body.light-theme .member-info-card,
+    body.light-theme .qr-container,
+    body.light-theme .mobile-header,
+    body.light-theme .public-profile {
+      background: rgba(245, 248, 255, 0.7) !important;
+      backdrop-filter: blur(12px) saturate(180%);
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #1e1e2f;
+    }
+
+    body.light-theme {
+      color: #1e1e2f;
+    }
+
+    body.light-theme .sidebar a {
+      color: #1e1e2f;
+    }
+
+    body.light-theme .sidebar a:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    /* === GLASSMORPHISM BASE === */
+    .glass-panel, .sidebar, .top-bar, .modal-content, .card-stats, .table-container, 
+    .member-info-card, .qr-container, .mobile-header, .public-profile, input, select, button {
+      background: rgba(18, 22, 35, 0.35);
+      backdrop-filter: blur(16px) saturate(200%);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      color: #f0f3ff;
+      transition: all 0.2s ease;
+    }
+
+    /* Public Profile (no sidebar version) */
+    .public-profile {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 30px 20px;
+    }
+
+    .public-profile .member-photo {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+    }
+
+    .public-profile .member-details-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .back-to-site {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #ffb86b;
+      text-decoration: none;
+    }
+
+    /* === MOBILE HEADER === */
+    .mobile-header {
+      display: none;
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+      margin: 10px;
+      padding: 12px 20px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-header .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .mobile-header .logo i {
+      color: #ffb86b;
+    }
+
+    .menu-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 40px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    /* === SIDEBAR === */
+    .sidebar {
+      width: 260px;
+      padding: 28px 16px;
+      margin: 20px 0 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: calc(100vh - 40px);
+      position: fixed;
+      top: 20px;
+      left: 0;
+      border-radius: 42px;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.closed {
+      transform: translateX(-300px);
+    }
+
+    .logo-area {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 10px 16px 30px;
+      background: none;
+      backdrop-filter: none;
+      border: none;
+      text-shadow: 0 2px 10px #ffb86b;
+    }
+
+    .logo-area i {
+      color: #ffb86b;
+      margin-right: 10px;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-radius: 38px;
+      font-weight: 500;
+      color: #eef5ff;
+      text-decoration: none;
+      transition: 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .sidebar a i {
+      width: 24px;
+      font-size: 1.2rem;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar .bottom-menu {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 16px;
+    }
+
+    .close-sidebar {
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* === MAIN LAYOUT === */
+    .main-content {
+      margin: 20px 20px 20px 300px;
+      padding: 20px 24px;
+      border-radius: 48px;
+      background: rgba(10, 14, 23, 0.25);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      overflow-y: auto;
+      min-height: calc(100vh - 40px);
+      transition: margin 0.3s ease;
+    }
+
+    .main-content.expanded {
+      margin: 20px;
+    }
+
+    /* === TOP BAR === */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 30px;
+      margin-bottom: 30px;
+      border-radius: 40px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .top-bar h2 {
+      font-size: clamp(1.2rem, 4vw, 1.8rem);
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 40px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: inherit;
+    }
+
+    /* === CARDS === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .card-stats {
+      padding: 20px 15px;
+      border-radius: 28px;
+      text-align: center;
+    }
+
+    .card-stats h3 {
+      font-size: clamp(1.2rem, 5vw, 1.8rem);
+      margin-top: 8px;
+    }
+
+    .card-stats i {
+      font-size: 1.5rem;
+      opacity: 0.9;
+    }
+
+    /* === FORMS & TABLES === */
+    input, select, button.primary, button.secondary {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 40px;
+      border: none;
+      outline: none;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      font-size: 16px;
+    }
+
+    button.primary {
+      background: linear-gradient(145deg, #ff8a5c, #ff5e3a);
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    button.primary:hover {
+      transform: scale(1.02);
+      background: #ff6f4a;
+    }
+
+    button.primary:active {
+      transform: scale(0.98);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      padding: 15px;
+      border-radius: 28px;
+      margin: 20px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      min-width: 600px;
+    }
+
+    th, td {
+      padding: 12px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.9rem;
+    }
+
+    /* === MODAL === */
+    .modal, .renew-modal {
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      backdrop-filter: blur(20px);
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 15px;
+    }
+
+    .modal-content, .renew-modal-content {
+      max-width: 500px;
+      width: 100%;
+      padding: 30px 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* Member Info Card */
+    .member-info-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 20px;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 28px;
+    }
+
+    .member-photo {
+      width: 100px;
+      height: 100px;
+      border-radius: 50px;
+      background: linear-gradient(145deg, #ffb86b, #ff5e3a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      border: 3px solid #ffb86b;
+      overflow: hidden;
+    }
+
+    .member-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .member-details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .detail-item {
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 18px;
+    }
+
+    .detail-label {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-bottom: 3px;
+    }
+
+    .detail-value {
+      font-weight: 600;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 15px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-active { background: #00b894; color: white; }
+    .status-expired { background: #d63031; color: white; }
+
+    /* QR Code Container */
+    .qr-container {
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+      border-radius: 28px;
+    }
+
+    #qrCode, #regQrCode, #renewQr {
+      display: flex;
+      justify-content: center;
+      margin: 15px 0;
+    }
+
+    canvas {
+      border-radius: 20px;
+      background: white;
+      padding: 10px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Action buttons in members list */
+    .action-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-btns button {
+      padding: 8px 12px !important;
+      font-size: 0.85rem !important;
+      width: auto !important;
+      min-width: 70px;
+    }
+
+    /* Flex utilities */
+    .flex {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .flex-wrap {
+      flex-wrap: wrap;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .text-center { text-align: center; }
+    .mt-20 { margin-top: 20px; }
+    .mb-20 { margin-bottom: 20px; }
+    .w-100 { width: 100%; }
+
+    /* Mobile overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+      z-index: 999;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    /* === RESPONSIVE DESIGN === */
+    @media (max-width: 900px) {
+      .member-info-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      
+      .member-photo {
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-header {
+        display: flex;
+      }
+
+      .sidebar {
+        transform: translateX(-300px);
+        margin: 0;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        border-radius: 0 42px 42px 0;
+        z-index: 1001;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .close-sidebar {
+        display: block;
+      }
+
+      .main-content {
+        margin: 10px;
+        padding: 15px;
+      }
+
+      .main-content.expanded {
+        margin: 10px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        padding: 15px;
+      }
+
+      .top-bar .flex {
+        justify-content: center;
+      }
+
+      .top-bar h2 {
+        margin-bottom: 5px;
+      }
+
+      .table-container {
+        padding: 10px;
+        border-radius: 20px;
+      }
+
+      th, td {
+        padding: 8px 5px;
+        font-size: 0.8rem;
+      }
+
+      .action-btns button {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        min-width: 60px;
+      }
+
+      .member-details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content, .renew-modal-content {
+        padding: 20px 15px;
+      }
+
+      input, select, button {
+        font-size: 16px;
+      }
+
+      .sidebar a {
+        padding: 16px 20px;
+      }
+
+      button, .menu-btn, .theme-toggle {
+        min-height: 48px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card-stats {
+        padding: 15px;
+      }
+
+      .member-photo {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+      }
+
+      .status-badge {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+      }
+
+      .action-btns {
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .action-btns button {
+        width: 100% !important;
+      }
+    }
+
+    /* Landscape mode */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .sidebar {
+        overflow-y: auto;
+      }
+
+      .sidebar a {
+        padding: 10px 15px;
+      }
+
+      .logo-area {
+        padding: 5px 16px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- MOBILE HEADER -->
+  <div class="mobile-header glass-panel">
+    <div class="logo"><i class="fas fa-fire"></i> IRON</div>
+    <button class="menu-btn" id="menuToggle"><i class="fas fa-bars"></i></button>
+  </div>
+
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
+    <div class="logo-area"><i class="fas fa-fire"></i> IRON</div>
+  </div>
+
+  <!-- MAIN PANEL (ADMIN VIEW) -->
+  <div class="main-content" id="mainContent"></div>
+
+  <!-- PUBLIC PROFILE VIEW (HIDDEN BY DEFAULT, SHOWN WHEN QR IS SCANNED) -->
+  <div class="public-profile hidden" id="publicProfile">
+    <div class="glass-panel" style="padding:30px 20px;">
+      <div class="text-center mb-20">
+        <i class="fas fa-fire" style="font-size: 3rem; color: #ffb86b;"></i>
+        <h2 style="margin-top:10px;">IRON GYM</h2>
+        <p>Member Profile</p>
+      </div>
+      
+      <div class="member-photo" id="publicPhoto" style="margin:0 auto 20px;">
+        <i class="fas fa-user"></i>
+      </div>
+      
+      <div class="member-details-grid" id="publicDetails">
+        <!-- Filled by JavaScript -->
+      </div>
+      
+      <div class="qr-container" style="margin-top:20px;">
+        <h3>Membership QR</h3>
+        <div id="publicQRCode"></div>
+        <p style="margin-top:10px; opacity:0.7;">Show this at the gym counter</p>
+      </div>
+      
+      <a href="#" class="back-to-site" id="backToSite">← Back to Gym Website</a>
+    </div>
+  </div>
+
+  <!-- LOCK MODAL -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content text-center">
+      <h2 style="margin-bottom: 24px;"><i class="fas fa-dumbbell"></i> ADMIN LOCK</h2>
+      <form id="loginForm">
+        <input type="password" id="passwordInput" placeholder="enter admin key (gymadmin)" style="margin-bottom: 20px;" autofocus>
+        <button type="submit" class="primary"><i class="fas fa-key"></i> UNLOCK</button>
+        <p style="margin-top: 16px; opacity:0.7">(demo pass: gymadmin)</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- RENEW MODAL -->
+  <div class="renew-modal hidden" id="renewModal">
+    <div class="renew-modal-content glass-panel">
+      <h2 class="text-center mb-20"><i class="fas fa-sync"></i> Renew Membership</h2>
+      <div id="renewMemberInfo" class="mb-20"></div>
+      <form id="renewForm">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;">
+          <select id="renewPlan" required>
+            <option value="">Select Plan</option>
+            <option value="1 month">1 Month - ₹1000</option>
+            <option value="3 month">3 Months - ₹2500</option>
+            <option value="6 month">6 Months - ₹4500</option>
+            <option value="1 year">1 Year - ₹8000</option>
+          </select>
+          
+          <select id="renewMethod" required>
+            <option value="">Payment Method</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Card">Card</option>
+            <option value="Net Banking">Net Banking</option>
+          </select>
+          
+          <input type="number" id="renewAmount" placeholder="Amount" readonly>
+          <input type="number" id="renewDiscount" placeholder="Discount" value="0">
+          <input type="number" id="renewFinal" placeholder="Final Amount" readonly>
+          <input type="date" id="renewDate" required>
+          <input type="text" id="renewTransId" placeholder="Transaction ID" readonly>
+        </div>
+        
+        <div class="qr-container" id="renewQrSection" style="display:none; margin-top:20px;">
+          <h3>Scan to Pay (UPI QR)</h3>
+          <div id="renewQr"></div>
+          <p>Amount: ₹<span id="renewQrAmount"></span></p>
+          <button type="button" class="secondary" id="downloadRenewQr"><i class="fas fa-download"></i> Download QR</button>
+        </div>
+        
+        <div class="flex" style="margin-top:20px;">
+          <button type="submit" class="primary"><i class="fas fa-check"></i> Process Renewal</button>
+          <button type="button" class="secondary" id="cancelRenew"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ========== GLOBAL STATE ==========
+      const ADMIN_PASS = "gymadmin";
+      let loggedIn = false;
+      let currentMember = null;
+      let renewMember = null;
+      let isMobileMenuOpen = false;
+
+      // Plan pricing
+      const planPrices = {
+        '1 month': 1000,
+        '3 month': 2500,
+        '6 month': 4500,
+        '1 year': 8000
+      };
+
+      // Data persistence
+      let members = JSON.parse(localStorage.getItem('gym_members')) || [];
+      let payments = JSON.parse(localStorage.getItem('gym_payments')) || [];
+      
+      // Enhanced sample data
+      if (members.length === 0) {
+        members.push({
+          id: 'M1001', 
+          name: 'John Carter', 
+          phone: '9876543210',
+          address: '123 Main St, NY', 
+          gender: 'Male',
+          joinDate: '2025-01-10', 
+          plan: '6 month', 
+          membershipExpiry: '2025-07-10', 
+          status: 'Active'
+        });
+        
+        members.push({
+          id: 'M1002', 
+          name: 'Sarah Johnson', 
+          phone: '9876543222',
+          address: '456 Oak Ave, LA', 
+          gender: 'Female',
+          joinDate: '2025-02-15', 
+          plan: '1 year', 
+          membershipExpiry: '2026-02-15', 
+          status: 'Active'
+        });
+        
+        localStorage.setItem('gym_members', JSON.stringify(members));
+      }
+
+      // Sample payments for history
+      if (payments.length === 0) {
+        payments.push({ 
+          memberId: 'M1001', 
+          name: 'John Carter', 
+          plan: '6 month',
+          method: 'UPI', 
+          amount: 4500, 
+          final: 4500, 
+          date: '2025-01-10', 
+          transaction: 'TXN001', 
+          type: 'New Registration',
+          status: 'Paid' 
+        });
+        
+        payments.push({ 
+          memberId: 'M1002', 
+          name: 'Sarah Johnson', 
+          plan: '1 year',
+          method: 'Card', 
+          amount: 8000, 
+          final: 8000, 
+          date: '2025-02-15', 
+          transaction: 'TXN002', 
+          type: 'New Registration',
+          status: 'Paid' 
+        });
+        
+        localStorage.setItem('gym_payments', JSON.stringify(payments));
+      }
+
+      // Get URL parameters for public profile
+      function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+          view: params.get('view'),
+          id: params.get('id'),
+          name: params.get('name'),
+          phone: params.get('phone'),
+          plan: params.get('plan'),
+          expiry: params.get('expiry'),
+          status: params.get('status'),
+          address: params.get('address'),
+          gender: params.get('gender')
+        };
+      }
+
+      // Check if we're viewing a public profile
+      const urlParams = getUrlParams();
+      const isPublicView = urlParams.view === 'member' && urlParams.id;
+
+      // Elements
+      const mainContent = document.getElementById('mainContent');
+      const publicProfile = document.getElementById('publicProfile');
+      const sidebarEl = document.getElementById('sidebar');
+      const mobileHeader = document.querySelector('.mobile-header');
+      const loginModal = document.getElementById('loginModal');
+      const loginForm = document.getElementById('loginForm');
+      const renewModal = document.getElementById('renewModal');
+      const renewForm = document.getElementById('renewForm');
+      const cancelRenew = document.getElementById('cancelRenew');
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const closeSidebar = document.getElementById('closeSidebar');
+      
+      // Show public profile if URL params exist
+      if (isPublicView) {
+        renderPublicProfile(urlParams);
+      }
+
+      function renderPublicProfile(params) {
+        // Hide admin content
+        if (mainContent) mainContent.classList.add('hidden');
+        if (mobileHeader) mobileHeader.classList.add('hidden');
+        if (sidebar) sidebar.classList.add('hidden');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        
+        // Show public profile
+        publicProfile.classList.remove('hidden');
+        
+        // Fill in member details
+        const detailsHtml = `
+          <div class="detail-item">
+            <div class="detail-label">Member ID</div>
+            <div class="detail-value">${params.id || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Name</div>
+            <div class="detail-value">${params.name || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Phone</div>
+            <div class="detail-value">${params.phone || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Address</div>
+            <div class="detail-value">${params.address || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Gender</div>
+            <div class="detail-value">${params.gender || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Plan</div>
+            <div class="detail-value">${params.plan || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Expiry Date</div>
+            <div class="detail-value">${params.expiry || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Status</div>
+            <div class="detail-value"><span class="status-badge ${params.status === 'Active' ? 'status-active' : 'status-expired'}">${params.status || 'Unknown'}</span></div>
+          </div>
+        `;
+        
+        document.getElementById('publicDetails').innerHTML = detailsHtml;
+        
+        // Generate QR code for this member (using URL with params)
+        const qrData = `${window.location.origin}${window.location.pathname}?view=member&id=${params.id}&name=${encodeURIComponent(params.name)}&phone=${params.phone}&plan=${encodeURIComponent(params.plan)}&expiry=${params.expiry}&status=${params.status}&address=${encodeURIComponent(params.address)}&gender=${params.gender}`;
+        
+        QRCode.toCanvas(document.createElement('canvas'), qrData, { width: 200 }, function(err, canvas) {
+          if (err) console.error(err);
+          document.getElementById('publicQRCode').innerHTML = '';
+          document.getElementById('publicQRCode').appendChild(canvas);
+        });
+        
+        // Back to site link
+        document.getElementById('backToSite').addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = window.location.pathname; // Remove params
+        });
+      }
+
+      // Mobile menu functions
+      function openMobileMenu() {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('active');
+        isMobileMenuOpen = true;
+      }
+
+      function closeMobileMenu() {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+        isMobileMenuOpen = false;
+      }
+
+      if (menuToggle) {
+        menuToggle.addEventListener('click', openMobileMenu);
+      }
+
+      if (closeSidebar) {
+        closeSidebar.addEventListener('click', closeMobileMenu);
+      }
+
+      if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeMobileMenu);
+      }
+
+      // Close mobile menu when clicking a nav item
+      document.addEventListener('click', function(e) {
+        if (e.target.closest('.nav-item') && window.innerWidth <= 768) {
+          setTimeout(closeMobileMenu, 300);
+        }
+      });
+
+      // Handle window resize
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+          closeMobileMenu();
+          sidebar.classList.remove('open');
+        }
+      });
+
+      // Helper functions
+      function generateMemberId() {
+        let last = members.map(m => parseInt(m.id.replace('M','')) || 1000).sort((a,b)=>b-a)[0] || 1000;
+        return 'M' + (last+1);
+      }
+
+      function calcExpiry(joinDate, plan) {
+        let d = new Date(joinDate);
+        if (plan.includes('1 month')) d.setMonth(d.getMonth()+1);
+        else if (plan.includes('3 month')) d.setMonth(d.getMonth()+3);
+        else if (plan.includes('6 month')) d.setMonth(d.getMonth()+6);
+        else if (plan.includes('1 year')) d.setFullYear(d.getFullYear()+1);
+        return d.toISOString().split('T')[0];
+      }
+
+      function refreshStatus() {
+        members.forEach(m => {
+          if (m.membershipExpiry && new Date(m.membershipExpiry) < new Date()) m.status = 'Expired';
+          else if (m.membershipExpiry) m.status = 'Active';
+        });
+        localStorage.setItem('gym_members', JSON.stringify(members));
+      }
+
+      function generateTransactionId() {
+        return 'TXN' + Date.now() + Math.floor(Math.random() * 1000);
+      }
+
+      // ========== ROUTING ==========
+      let currentPage = 'dashboard';
+
+      function showLogin() {
+        if (!isPublicView) {
+          loginModal.classList.remove('hidden');
+          loggedIn = false;
+          renderSidebar();
+        }
+      }
+
+      function hideLogin() {
+        loginModal.classList.add('hidden');
+      }
+
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('passwordInput').value;
+        if (pwd === ADMIN_PASS) {
+          loggedIn = true;
+          hideLogin();
+          renderSidebar();
+          renderPage(currentPage);
+        } else {
+          alert('Invalid key');
+        }
+      });
+
+      function logout() {
+        loggedIn = false;
+        showLogin();
+        mainContent.innerHTML = '';
+        closeMobileMenu();
+      }
+
+      function renderSidebar() {
+        if (!loggedIn || isPublicView) {
+          sidebarEl.innerHTML = ''; 
+          return;
+        }
+        let active = currentPage;
+        sidebarEl.innerHTML = `
+          <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
+          <div class="logo-area"><i class="fas fa-fire"></i> IRON</div>
+          <a href="#" class="nav-item ${active==='dashboard'?'active':''}" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
+          <a href="#" class="nav-item ${active==='members'?'active':''}" data-page="members"><i class="fas fa-users"></i> Members</a>
+          <a href="#" class="nav-item ${active==='memberInfo'?'active':''}" data-page="memberInfo"><i class="fas fa-id-card"></i> Member Info</a>
+          <a href="#" class="nav-item ${active==='register'?'active':''}" data-page="register"><i class="fas fa-user-plus"></i> Register</a>
+          <a href="#" class="nav-item ${active==='paymentHistory'?'active':''}" data-page="paymentHistory"><i class="fas fa-history"></i> Payment History</a>
+          <div class="bottom-menu">
+            <a href="#" id="themeToggleSide"><i class="fas fa-palette"></i> Theme</a>
+            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        `;
+
+        document.getElementById('closeSidebar')?.addEventListener('click', closeMobileMenu);
+
+        document.querySelectorAll('.nav-item').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            let page = btn.dataset.page;
+            if (page) { 
+              currentPage = page; 
+              renderSidebar();
+              renderPage(page);
+              if (window.innerWidth <= 768) {
+                closeMobileMenu();
+              }
+            }
+          });
+        });
+
+        document.getElementById('themeToggleSide')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.body.classList.toggle('light-theme');
+        });
+
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+          e.preventDefault(); 
+          logout();
+        });
+      }
+
+      // ========== RENEW MODAL FUNCTIONS ==========
+      function showRenewModal(member) {
+        renewMember = member;
+        let memberInfo = document.getElementById('renewMemberInfo');
+        memberInfo.innerHTML = `
+          <div class="detail-item">
+            <div class="detail-label">Member</div>
+            <div class="detail-value">${member.name} (${member.id})</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Current Plan</div>
+            <div class="detail-value">${member.plan}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Current Expiry</div>
+            <div class="detail-value">${member.membershipExpiry}</div>
+          </div>
+        `;
+        
+        document.getElementById('renewDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('renewTransId').value = generateTransactionId();
+        
+        renewModal.classList.remove('hidden');
+      }
+
+      function hideRenewModal() {
+        renewModal.classList.add('hidden');
+        renewForm.reset();
+        document.getElementById('renewQrSection').style.display = 'none';
+      }
+
+      cancelRenew.addEventListener('click', hideRenewModal);
+
+      // Renew form calculations
+      document.getElementById('renewPlan')?.addEventListener('change', function() {
+        let plan = this.value;
+        let amount = planPrices[plan] || 0;
+        document.getElementById('renewAmount').value = amount;
+        calculateRenewFinal();
+      });
+
+      document.getElementById('renewDiscount')?.addEventListener('input', calculateRenewFinal);
+
+      function calculateRenewFinal() {
+        let amount = parseFloat(document.getElementById('renewAmount').value) || 0;
+        let discount = parseFloat(document.getElementById('renewDiscount').value) || 0;
+        document.getElementById('renewFinal').value = amount - discount;
+      }
+
+      // Renew payment QR
+      document.getElementById('renewMethod')?.addEventListener('change', function() {
+        let qrSection = document.getElementById('renewQrSection');
+        if (this.value === 'UPI') {
+          qrSection.style.display = 'block';
+          let upiId = 'gym@paytm';
+          let amount = document.getElementById('renewFinal').value || '0';
+          document.getElementById('renewQrAmount').textContent = amount;
+          
+          let upiString = `upi://pay?pa=${upiId}&pn=IRON GYM&am=${amount}&tn=Membership Renewal`;
+          
+          QRCode.toCanvas(document.createElement('canvas'), upiString, { width: 200 }, function(err, canvas) {
+            if (err) console.error(err);
+            document.getElementById('renewQr').innerHTML = '';
+            document.getElementById('renewQr').appendChild(canvas);
+            
+            document.getElementById('downloadRenewQr').onclick = () => {
+              const link = document.createElement('a');
+              link.download = `renewal-QR-${Date.now()}.png`;
+              link.href = canvas.toDataURL();
+              link.click();
+            };
+          });
+        } else {
+          qrSection.style.display = 'none';
+        }
+      });
+
+      // Renew form submission
+      renewForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        let plan = document.getElementById('renewPlan').value;
+        let method = document.getElementById('renewMethod').value;
+        let amount = parseFloat(document.getElementById('renewAmount').value);
+        let discount = parseFloat(document.getElementById('renewDiscount').value) || 0;
+        let final = parseFloat(document.getElementById('renewFinal').value);
+        let date = document.getElementById('renewDate').value;
+        let transId = document.getElementById('renewTransId').value;
+        
+        if (!plan || !method) {
+          alert('Please select plan and payment method');
+          return;
+        }
+        
+        // Update member
+        renewMember.joinDate = date;
+        renewMember.plan = plan;
+        renewMember.membershipExpiry = calcExpiry(date, plan);
+        renewMember.status = 'Active';
+        
+        // Save payment record
+        let payment = {
+          memberId: renewMember.id,
+          name: renewMember.name,
+          plan: plan,
+          method: method,
+          amount: amount,
+          discount: discount,
+          final: final,
+          date: date,
+          transaction: transId,
+          type: 'Renewal',
+          status: 'Paid'
+        };
+        
+        payments.push(payment);
+        
+        // Save to localStorage
+        localStorage.setItem('gym_members', JSON.stringify(members));
+        localStorage.setItem('gym_payments', JSON.stringify(payments));
+        
+        alert('Membership renewed successfully!');
+        hideRenewModal();
+        
+        // Refresh current page
+        renderPage(currentPage);
+      });
+
+      // ========== PAGE RENDERING ==========
+      function renderPage(page) {
+        if (!loggedIn || isPublicView) return;
+        refreshStatus();
+        if (page === 'dashboard') renderDashboard();
+        else if (page === 'members') renderMembersList();
+        else if (page === 'memberInfo') renderMemberInfo();
+        else if (page === 'register') renderRegisterForm();
+        else if (page === 'paymentHistory') renderPaymentHistory();
+      }
+
+      function renderDashboard() {
+        refreshStatus();
+        let total = members.length;
+        let active = members.filter(m => m.status === 'Active').length;
+        let expired = members.filter(m => m.status === 'Expired').length;
+        
+        // Calculate total revenue
+        let totalRevenue = payments.reduce((sum, p) => sum + (p.final || 0), 0);
+        let monthlyRevenue = payments
+          .filter(p => p.date.startsWith(new Date().toISOString().slice(0,7)))
+          .reduce((sum, p) => sum + (p.final || 0), 0);
+        
+        // Get recent payments
+        let recentPayments = [...payments].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+        mainContent.innerHTML = `
+          <div class="top-bar">
+            <h2><i class="fas fa-dumbbell"></i> DASHBOARD</h2>
+            <button class="theme-toggle" id="themeToggleTop"><i class="fas fa-moon"></i> Theme</button>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="card-stats"><i class="fas fa-user"></i> Total <h3>${total}</h3></div>
+            <div class="card-stats"><i class="fas fa-check-circle"></i> Active <h3>${active}</h3></div>
+            <div class="card-stats"><i class="fas fa-clock"></i> Expired <h3>${expired}</h3></div>
+            <div class="card-stats"><i class="fas fa-rupee-sign"></i> Revenue <h3>₹${totalRevenue}</h3></div>
+            <div class="card-stats"><i class="fas fa-calendar"></i> Monthly <h3>₹${monthlyRevenue}</h3></div>
+          </div>
+
+          <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+            <h3 class="mb-20"><i class="fas fa-chart-line"></i> Revenue Overview</h3>
+            <canvas id="revenueChart" width="400" height="200" style="max-width:100%; height:auto;"></canvas>
+          </div>
+
+          <div class="glass-panel" style="padding:20px;">
+            <h3 class="mb-20"><i class="fas fa-history"></i> Recent Payments</h3>
+            <div class="table-container" style="margin:0; padding:0;">
+              <table>
+                <thead>
+                  <tr><th>Date</th><th>Member</th><th>Plan</th><th>Method</th><th>Amount</th></tr>
+                </thead>
+                <tbody>
+                  ${recentPayments.map(p => `
+                    <tr>
+                      <td>${p.date}</td>
+                      <td>${p.name}</td>
+                      <td>${p.plan || 'N/A'}</td>
+                      <td>${p.method}</td>
+                      <td>₹${p.final}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        document.getElementById('themeToggleTop')?.addEventListener('click', ()=>{
+          document.body.classList.toggle('light-theme');
+        });
+
+        // Revenue chart
+        let monthlyData = {};
+        payments.forEach(p => {
+          let month = p.date.slice(0,7);
+          monthlyData[month] = (monthlyData[month] || 0) + p.final;
+        });
+        
+        let months = Object.keys(monthlyData).sort().slice(-6);
+        let revenues = months.map(m => monthlyData[m]);
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: { 
+            labels: months, 
+            datasets: [{
+              label: 'Monthly Revenue (₹)',
+              data: revenues, 
+              backgroundColor: '#ffb86b',
+              borderRadius: 8
+            }]
+          },
+          options: { 
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { labels: { color: '#fff' } }
+            }
+          }
+        });
+      }
+
+      function renderMembersList() {
+        refreshStatus();
+        let html = `
+          <div class="top-bar">
+            <h2>Members Directory</h2>
+            <input type="text" id="searchMember" placeholder="🔍 Search by name or ID" style="width:100%; max-width:300px;">
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>ID</th><th>Name</th><th>Phone</th><th>Plan</th><th>Expiry</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="memberBody">
+        `;
+        
+        members.forEach(m => {
+          html += `<tr>
+            <td>${m.id}</td>
+            <td>${m.name}</td>
+            <td>${m.phone}</td>
+            <td>${m.plan}</td>
+            <td>${m.membershipExpiry}</td>
+            <td><span class="status-badge ${m.status === 'Active' ? 'status-active' : 'status-expired'}">${m.status}</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="secondary view-member" data-id="${m.id}"><i class="fas fa-eye"></i> View</button>
+                <button class="primary renew-member" data-id="${m.id}"><i class="fas fa-sync"></i> Renew</button>
+              </div>
+            </td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table></div>';
+        mainContent.innerHTML = html;
+
+        document.querySelectorAll('.view-member').forEach(btn => {
+          btn.addEventListener('click', () => {
+            let id = btn.dataset.id;
+            currentMember = members.find(m => m.id === id);
+            currentPage = 'memberInfo';
+            renderSidebar();
+            renderMemberInfo();
+          });
+        });
+
+        document.querySelectorAll('.renew-member').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            let id = btn.dataset.id;
+            let member = members.find(m => m.id === id);
+            if (member) showRenewModal(member);
+          });
+        });
+
+        document.getElementById('searchMember').addEventListener('input', (e) => {
+          let term = e.target.value.toLowerCase();
+          document.querySelectorAll('#memberBody tr').forEach((row, idx) => {
+            let member = members[idx];
+            if (member) {
+              let matches = member.name.toLowerCase().includes(term) || member.id.toLowerCase().includes(term);
+              row.style.display = matches ? '' : 'none';
+            }
+          });
+        });
+      }
+
+      function renderMemberInfo() {
+        if (!currentMember && members.length > 0) currentMember = members[0];
+        if (!currentMember) {
+          mainContent.innerHTML = '<div class="glass-panel"><h3>No members found</h3></div>';
+          return;
+        }
+
+        let memberPayments = payments.filter(p => p.memberId === currentMember.id);
+        let totalPaid = memberPayments.reduce((sum, p) => sum + (p.final || 0), 0);
+
+        mainContent.innerHTML = `
+          <div class="top-bar">
+            <h2><i class="fas fa-id-card"></i> Member Profile</h2>
+            <div class="flex w-100">
+              <select id="memberSelector" class="secondary" style="flex:1; min-width:200px;">
+                ${members.map(m => `<option value="${m.id}" ${m.id === currentMember.id ? 'selected' : ''}>${m.name}</option>`).join('')}
+              </select>
+              <button class="primary renew-member" data-id="${currentMember.id}"><i class="fas fa-sync"></i> Renew</button>
+            </div>
+          </div>
+
+          <div class="member-info-card">
+            <div class="member-photo">
+              <i class="fas fa-user"></i>
+            </div>
+            <div>
+              <h2 style="margin-bottom:15px;">${currentMember.name}</h2>
+              <div class="member-details-grid">
+                <div class="detail-item"><div class="detail-label">ID</div><div class="detail-value">${currentMember.id}</div></div>
+                <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value">${currentMember.phone}</div></div>
+                <div class="detail-item"><div class="detail-label">Address</div><div class="detail-value">${currentMember.address}</div></div>
+                <div class="detail-item"><div class="detail-label">Gender</div><div class="detail-value">${currentMember.gender}</div></div>
+                <div class="detail-item"><div class="detail-label">Plan</div><div class="detail-value">${currentMember.plan}</div></div>
+                <div class="detail-item"><div class="detail-label">Expiry</div><div class="detail-value">${currentMember.membershipExpiry}</div></div>
+                <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge ${currentMember.status === 'Active' ? 'status-active' : 'status-expired'}">${currentMember.status}</span></div></div>
+                <div class="detail-item"><div class="detail-label">Total Paid</div><div class="detail-value">₹${totalPaid}</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding:20px; margin:20px 0;">
+            <h3 class="mb-20">Payment History</h3>
+            <div class="table-container" style="margin:0; padding:0;">
+              <table>
+                <thead>
+                  <tr><th>Date</th><th>Plan</th><th>Method</th><th>Amount</th></tr>
+                </thead>
+                <tbody>
+                  ${memberPayments.map(p => `
+                    <tr>
+                      <td>${p.date}</td>
+                      <td>${p.plan || 'N/A'}</td>
+                      <td>${p.method}</td>
+                      <td>₹${p.final}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="qr-container">
+            <h3>Member QR Code</h3>
+            <p>Scan to view public profile</p>
+            <div id="qrCode"></div>
+            <button class="secondary" id="downloadQr"><i class="fas fa-download"></i> Download QR</button>
+          </div>
+        `;
+
+        document.querySelector('.renew-member').addEventListener('click', () => {
+          showRenewModal(currentMember);
+        });
+
+        // Generate QR code with URL parameters for public view
+        const publicUrl = `${window.location.origin}${window.location.pathname}?view=member&id=${currentMember.id}&name=${encodeURIComponent(currentMember.name)}&phone=${currentMember.phone}&plan=${encodeURIComponent(currentMember.plan)}&expiry=${currentMember.membershipExpiry}&status=${currentMember.status}&address=${encodeURIComponent(currentMember.address)}&gender=${currentMember.gender}`;
+        
+        QRCode.toCanvas(document.createElement('canvas'), publicUrl, { width: 200 }, function(err, canvas) {
+          if (err) console.error(err);
+          document.getElementById('qrCode').innerHTML = '';
+          document.getElementById('qrCode').appendChild(canvas);
+          
+          document.getElementById('downloadQr').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `QR-${currentMember.id}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+          });
+        });
+
+        document.getElementById('memberSelector').addEventListener('change', (e) => {
+          currentMember = members.find(m => m.id === e.target.value);
+          renderMemberInfo();
+        });
+      }
+
+      function renderRegisterForm() {
+        mainContent.innerHTML = `
+          <div class="top-bar"><h2>Add New Member</h2></div>
+          <div class="glass-panel" style="padding:20px;">
+            <form id="regForm">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:15px;">
+                <input type="text" id="fullName" placeholder="Full Name *" required>
+                <input type="tel" id="phone" placeholder="Mobile Number *" required>
+                <input type="text" id="address" placeholder="Address *" required>
+                <select id="gender" required>
+                  <option value="">Select Gender *</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <select id="plan" required>
+                  <option value="">Select Plan *</option>
+                  <option value="1 month">1 Month - ₹1000</option>
+                  <option value="3 month">3 Months - ₹2500</option>
+                  <option value="6 month">6 Months - ₹4500</option>
+                  <option value="1 year">1 Year - ₹8000</option>
+                </select>
+                <input type="date" id="joinDate" required>
+                <select id="paymentMethod" required>
+                  <option value="">Payment Method *</option>
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Card">Card</option>
+                  <option value="Net Banking">Net Banking</option>
+                </select>
+                <input type="number" id="amount" placeholder="Amount" readonly>
+              </div>
+              
+              <div class="qr-container" id="regQrSection" style="display:none; margin-top:20px;">
+                <h3>Scan to Pay (UPI QR)</h3>
+                <div id="regQrCode"></div>
+                <p>Amount: ₹<span id="regQrAmount"></span></p>
+                <button type="button" class="secondary" id="downloadRegQr"><i class="fas fa-download"></i> Download QR</button>
+              </div>
+              
+              <button type="submit" class="primary" style="margin-top:20px;"><i class="fas fa-save"></i> Register Member</button>
+            </form>
+          </div>
+        `;
+
+        document.getElementById('plan').addEventListener('change', function() {
+          let plan = this.value;
+          let amount = planPrices[plan] || 0;
+          document.getElementById('amount').value = amount;
+          
+          if (document.getElementById('paymentMethod').value === 'UPI' && amount > 0) {
+            generateRegistrationQR(amount);
+          }
+        });
+
+        document.getElementById('paymentMethod').addEventListener('change', function() {
+          let qrSection = document.getElementById('regQrSection');
+          let amount = document.getElementById('amount').value;
+          
+          if (this.value === 'UPI' && amount > 0) {
+            qrSection.style.display = 'block';
+            generateRegistrationQR(amount);
+          } else {
+            qrSection.style.display = 'none';
+          }
+        });
+
+        function generateRegistrationQR(amount) {
+          let upiId = 'gym@paytm';
+          document.getElementById('regQrAmount').textContent = amount;
+          
+          let upiString = `upi://pay?pa=${upiId}&pn=IRON GYM&am=${amount}&tn=New Membership Registration`;
+          
+          QRCode.toCanvas(document.createElement('canvas'), upiString, { width: 200 }, function(err, canvas) {
+            if (err) console.error(err);
+            document.getElementById('regQrCode').innerHTML = '';
+            document.getElementById('regQrCode').appendChild(canvas);
+            
+            document.getElementById('downloadRegQr').onclick = () => {
+              const link = document.createElement('a');
+              link.download = `registration-QR-${Date.now()}.png`;
+              link.href = canvas.toDataURL();
+              link.click();
+            };
+          });
+        }
+
+        document.getElementById('regForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          
+          let name = document.getElementById('fullName').value;
+          let phone = document.getElementById('phone').value;
+          let address = document.getElementById('address').value;
+          let gender = document.getElementById('gender').value;
+          let plan = document.getElementById('plan').value;
+          let joinDate = document.getElementById('joinDate').value;
+          let paymentMethod = document.getElementById('paymentMethod').value;
+          let amount = parseFloat(document.getElementById('amount').value);
+          
+          if (!name || !phone || !address || !gender || !plan || !joinDate || !paymentMethod) {
+            alert('Please fill in all required fields');
+            return;
+          }
+          
+          let newMember = {
+            id: generateMemberId(),
+            name: name,
+            phone: phone,
+            address: address,
+            gender: gender,
+            joinDate: joinDate,
+            plan: plan,
+            membershipExpiry: calcExpiry(joinDate, plan),
+            status: 'Active'
+          };
+          
+          members.push(newMember);
+          
+          let payment = {
+            memberId: newMember.id,
+            name: newMember.name,
+            plan: plan,
+            method: paymentMethod,
+            amount: amount,
+            final: amount,
+            date: joinDate,
+            transaction: generateTransactionId(),
+            type: 'New Registration',
+            status: 'Paid'
+          };
+          
+          payments.push(payment);
+          
+          localStorage.setItem('gym_members', JSON.stringify(members));
+          localStorage.setItem('gym_payments', JSON.stringify(payments));
+          
+          alert('Member registered successfully! ID: ' + newMember.id);
+          currentMember = newMember;
+          currentPage = 'memberInfo';
+          renderSidebar();
+          renderMemberInfo();
+        });
+      }
+
+      function renderPaymentHistory() {
+        let html = `
+          <div class="top-bar">
+            <h2>Payment History</h2>
+            <div class="flex w-100">
+              <input type="date" id="filterDate" placeholder="Filter by date" style="flex:1;">
+              <input type="text" id="searchName" placeholder="Search member" style="flex:1;">
+              <select id="filterType" class="secondary" style="width:150px;">
+                <option value="">All</option>
+                <option value="New Registration">New</option>
+                <option value="Renewal">Renewal</option>
+              </select>
+              <button class="primary" id="exportPdf"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Member</th><th>Plan</th><th>Method</th><th>Amount</th><th>Type</th><th>Transaction</th></tr>
+              </thead>
+              <tbody id="payTableBody">
+        `;
+        
+        payments.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(p => {
+          html += `<tr>
+            <td>${p.date}</td>
+            <td>${p.name}</td>
+            <td>${p.plan || 'N/A'}</td>
+            <td>${p.method}</td>
+            <td>₹${p.final}</td>
+            <td><span class="status-badge ${p.type === 'Renewal' ? 'status-active' : 'status-expired'}">${p.type || 'Payment'}</span></td>
+            <td>${p.transaction}</td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table></div>';
+        mainContent.innerHTML = html;
+
+        document.getElementById('exportPdf')?.addEventListener('click', () => {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          doc.text('Payment History', 14, 20);
+          doc.autoTable({ 
+            html: '#payTableBody',
+            startY: 30,
+            theme: 'grid',
+            styles: { fontSize: 8 }
+          });
+          doc.save('payment-history.pdf');
+        });
+
+        function filterPayments() {
+          let date = document.getElementById('filterDate').value;
+          let search = document.getElementById('searchName').value.toLowerCase();
+          let type = document.getElementById('filterType').value;
+          
+          document.querySelectorAll('#payTableBody tr').forEach((row, idx) => {
+            let payment = payments[idx];
+            if (payment) {
+              let dateMatch = !date || payment.date === date;
+              let nameMatch = !search || payment.name.toLowerCase().includes(search);
+              let typeMatch = !type || payment.type === type;
+              row.style.display = (dateMatch && nameMatch && typeMatch) ? '' : 'none';
+            }
+          });
+        }
+
+        document.getElementById('filterDate').addEventListener('change', filterPayments);
+        document.getElementById('searchName').addEventListener('input', filterPayments);
+        document.getElementById('filterType').addEventListener('change', filterPayments);
+      }
+
+      // Initialize
+      if (!isPublicView) {
+        showLogin();
+      }
+    })();
+  </script>
+</body>
+</html>
